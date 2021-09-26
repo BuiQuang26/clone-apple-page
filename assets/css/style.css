@@ -177,15 +177,15 @@ html{
 }
 
 .poster-bg-iphone12up{
-    background-image: url("/assets/img/iphone_12_updated__pc.jpg");
+    background-image: url("../img/iphone_12_updated__pc.jpg");
 }
 
 .poster-bg-iphone12pro{
-    background-image: url("/assets/img/iphone_12_pro_us__pc.jpg");
+    background-image: url("../img/iphone_12_pro_us__pc.jpg");
 }
 
 .poster-bg-imac{
-    background-image: url("/assets/img/hero_ipad_pro_non_avail__pc.jpg");
+    background-image: url("../img/hero_ipad_pro_non_avail__pc.jpg");
 }
 
 .poster-text{
@@ -232,27 +232,27 @@ html{
 }
 
 .bg-subPoster-imac{
-    background-image: url("/assets/img/promo_imac__pc.jpg");
+    background-image: url("../img/promo_imac__pc.jpg");
 }
 
 .bg-subPoster-wat{
-    background-image: url("/assets/img/promo_watch_series_6_lte_pc.jpg");
+    background-image: url("../img/promo_watch_series_6_lte_pc.jpg");
 }
 
 .bg-subPoster-tv{
-    background-image: url("/assets/img/promo_tile_tv4k__cbz6fpnn6kz6_large.jpg");
+    background-image: url("../img/promo_tile_tv4k__cbz6fpnn6kz6_large.jpg");
 }
 
 .bg-subPoster-airtag{
-    background-image: url("/assets/img/promo_airtag__e6b73a64nno2_large.jpg");
+    background-image: url("../img/promo_airtag__e6b73a64nno2_large.jpg");
 }
 
 .bg-subPoster-arc{
-    background-image: url("/assets/img/promo_arcade__e7ps46tldi62_large.jpg");
+    background-image: url("../img/promo_arcade__e7ps46tldi62_large.jpg");
 }
 
 .bg-subPoster-tvplus{
-    background-image: url("/assets/img/tile__cauwwcyyn9hy_xlarge.jpg");
+    background-image: url("../img/tile__cauwwcyyn9hy_xlarge.jpg");
 }
 
 .sub_poster-text {  
