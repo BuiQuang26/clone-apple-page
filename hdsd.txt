@@ -1,0 +1,433 @@
+# Triển khai hạ tầng
+
+**Hạ tầng hệ thống bao gồm các dịch vụ sau:**
+- Kubernetes
+- MySql
+- InfluxDb, telegraf và grafana
+- Cụm kafka vs kafka-conect
+- Elasticsearch và kibana
+- Microservice java application
+
+## Cài đặt dịch vụ Telegraf, influxDB vs Grafana
+
+*Các bước cài đặt telegraf, influxDB, grafana trên ubuntu*
+
+### Cài đặt InfluxDB
+
+1. Cập nhật hệ thống ubuntu:
+
+    ```bash
+    sudo apt update && sudo apt upgrade
+    ```
+
+2. Thêm kho lưu trữ InfluxData cho ubuntu
+
+    ```bash
+    # influxdata-archive_compat.key GPG Fingerprint: 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E
+    wget -q https://repos.influxdata.com/influxdata-archive_compat.key
+    echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+    ```
+
+3. Cài đặt InfluxDB:
+
+    ```bash
+    sudo apt-get update && sudo apt-get install influxdb
+    ```
+    
+    *Sử dụng influxDB version 1.8*
+
+4. Khởi động và kích hoạt dịch vụ InfluxDB
+
+    ```bash
+    sudo systemctl start influxdb
+    sudo systemctl enable influxdb
+    ```
+
+    *Kích hoạt dịch vụ để khời động influxDB cùng với hệ thống*
+
+5. Kiểm tra trạng thái dịch vụ
+
+   - Influx DB chạy trên cổng mặc định 8086.
+
+   - Lưu trữ data tại thư mục: /var/lib/influxdb/data
+
+    ```bash
+    sudo systemctl status influxdb
+    ```
+
+6. Tạo user quản trị influxDB
+    
+   - **Mở CLI của influx DB bằng lệnh sau:**
+      ```bash
+      influx
+      ```
+   - **Tạo người dùng quản trị bằng lệnh sau:**
+     ```bash
+     CREATE USER admin WITH PASSWORD 'yourpassword' WITH ALL PRIVILEGES
+     ```
+   - **Kích hoạt tính năng xác thực người dùng trên influxDB:**
+
+     Mở tệp cấu hình InfluxDB (**`/etc/influxdb/influxdb.conf`**) và tìm phần **`[http]`**. Thêm hoặc chỉnh sửa dòng **`auth-enabled`** thành **`true`**.
+     ```bash
+     [http]
+     auth-enabled = true
+     ```
+   - **Khởi động lại dịch vụ InfluxDB:**
+     ```bash
+     sudo systemctl restart influxdb
+     ```
+   - **Kiểm tra trạng thái dịch vụ:**
+     ```bash
+     sudo systemctl status influxdb
+     ```
+
+7. Tạo dataBase trên influxDB
+
+   - Sử dụng lệnh **`CREATE DATABASE`** để tạo cơ sở dữ liệu mới. 
+   - Ví dụ, để tạo một cơ sở dữ liệu tên là **`mydb`**:
+
+      ```sql
+      CREATE DATABASE mydb;
+      ```
+
+   - Kiểm tra cơ sở dữ liệu đã tạo:
+
+      ```sql
+      SHOW DATABASES;
+      ```
+
+### Cài đặt Telegraf
+
+1. Thêm kho lưu trữ InfluxData cho ubuntu tương tự với cài đặt influxDB
+
+    ```bash
+    # influxdata-archive_compat.key GPG Fingerprint: 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E
+    curl -s https://repos.influxdata.com/influxdata-archive_compat.key > influxdata-archive_compat.key
+    echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+    ```
+
+2. Cài đặt Telegraf
+
+    ```bash
+    sudo apt-get update && sudo apt-get install telegraf
+    ```
+
+3. Khởi động và kích hoạt dịch vụ Telegraf
+
+    ```bash
+    sudo systemctl start telegraf
+    sudo systemctl enable telegraf
+    ```
+
+4. Kiểm tra trạng thái dịch vụ của telegraf
+
+    ```bash
+    sudo systemctl status telegraf
+    ```
+
+5. Cấu hình telegraf
+    
+    Cấu hình telegraf lắng nghe kafka và ghi dữ liệu vào influxDB:
+    
+    [Xem thêm](https://github.com/influxdata/telegraf/blob/master/plugins/inputs/kafka_consumer/README.md)
+    
+    ```
+    [[inputs.kafka_consumer]]
+      ## Kafka brokers.
+      brokers = ["13.250.21.7:29092"]
+    
+      consumer_group = "lpb_telegraf_metrics_consumers"
+    
+      ## Topics to consume.
+      topics = ["LPB.PositionData.Sink"]
+    
+      name_override  = "LPB_PositionData_Sink"
+      data_format = "json"
+      tag_keys = ["VehicleName", "IMEI"]
+      json_string_fields = ["VehicleName", "IMEI"]
+      json_time_key = "TimeStamp"
+      json_time_format = "2006-01-02T15:04:05+0700"
+      json_timezone = "Asia/Ho_Chi_Minh"
+    
+      ## SASL authentication credentials.  These settings should typically be used
+      ## with TLS encryption enabled
+      ## sasl_username = "lpbank"
+      ## sasl_password = "lpbank@123"
+    
+      ## Optional SASL:
+      ## one of: OAUTHBEARER, PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, GSSAPI
+      ## (defaults to PLAIN)
+      ## sasl_mechanism = "PLAIN"
+    
+    # Configuration for sending metrics to InfluxDB
+    [[outputs.influxdb]]
+      urls = ["http://localhost:8086"]
+      ## HTTP Basic Auth
+      username = "lpb"
+      password = "lpb@12345"
+    
+      database = "lpb"
+    
+      ## If true, no CREATE DATABASE queries will be sent.  Set to true when using
+      ## Telegraf with a user without permissions to create databases or when the
+      ## database already exists.
+      skip_database_creation = true
+    ```
+
+### Cài đặt Grafana trên ubuntu
+
+1. Cập nhật hệ thống
+
+    ```bash
+    sudo apt update && sudo apt upgrade
+    ```
+
+2. Thêm Grafana repository
+
+    ```bash
+    sudo apt-get install -y software-properties-common
+    wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+    sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+    ```
+
+3. Cài đặt grafana
+
+    ```bash
+    sudo apt update
+    sudo apt install grafana
+    ```
+
+4. Khởi động và kích hoạt dịch vụ Grafana
+
+    ```bash
+    sudo systemctl start grafana-server
+    sudo systemctl enable grafana-server
+    ```
+
+5. Kiểm tra trạng thái dịch vụ
+
+    ```bash
+    sudo systemctl status grafana-server
+    ```
+
+6. Truy cập Grafana
+
+   - Mở trình duyệt web và truy cập địa chỉ: http://localhost:3000
+   - Đăng nhập với tài khoản mặc định:
+   - Username: **`admin`**
+   - Password: **`admin`**
+
+## Cài đặt Kafka và kafka-connect
+
+- *Các bước dựng một cụm kafka broker chạy trên kubernetes.*
+- *Yêu cầu cần cài đặt trước kubectl và đã kết nối kubernetes.*
+
+1. Tạo namespace
+   - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình namespace trong file `Namespace.yaml`.
+   - Thực hiện tạo namespace trên k8s bằng `kubectl`:
+        ```bash
+        kubectl apply -f ./Namespace.yaml
+        ```
+
+2. Tạo network policy
+    - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình networkPolicy trong file `NetworkPolicy.yaml`.
+    - Thực hiện tạo hoặc cập nhật NetworkPolicy trên k8s bằng `kubectl`:
+         ```bash
+         kubectl apply -f ./NetworkPolicy.yaml
+         ```
+
+3. Tạo Zookeeper
+    - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình networkPolicy trong file `NetworkPolicy.yaml`.
+    - Thực hiện tạo hoặc cập nhật NetworkPolicy trên k8s bằng `kubectl`:
+         ```bash
+         kubectl apply -f ./NetworkPolicy.yaml
+         ```
+
+4. Tạo cụm kafka-broker
+    - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình Kafka-broker trong file `kafka-broker.yaml`.
+    - Thực hiện tạo hoặc cập nhật Kafka-broker trên k8s bằng `kubectl`:
+         ```bash
+         kubectl apply -f ./Kafka-broker.yaml
+         ```
+
+5. Tạo kafka-connect
+    - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình Kafka-broker trong file `kafka-connect.yaml`.
+    - Thực hiện tạo hoặc cập nhật kafka-connect trên k8s bằng `kubectl`:
+         ```bash
+         kubectl apply -f ./kafka-connect.yaml
+         ```
+
+6. Tạo kafka-ui
+    - Vào thư muc `./kafka` tạo và chỉnh sửa cấu hình Kafka-broker trong file `kafka-ui.yaml`.
+    - Thực hiện tạo hoặc cập nhật kafka-ui trên k8s bằng `kubectl`:
+         ```bash
+         kubectl apply -f ./kafka-connect.yaml
+         ```
+
+7. Tạo connector đồng bộ dự liệu realtime của xe từ kafka sang elasticsearch bằng kafka-connect
+    
+    > Cấu hình kafka-connect lắng nghe lấy data hoạt động của xe từ topic `LPB.PositionData.Sink` và đồng bộ sang elasticsearch.
+
+    - Cài đặt Kafka Elasticsearch Connector:
+
+        Truy cập vào cmd của pod `kafka-connect` và thực hiện câu lệnh sau:
+        ```bash
+        confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:latest
+        ```
+
+    - Cấu hình Elasticsearch Sink Connector:
+      - Tạo một tệp JSON với cấu hình của Elasticsearch Sink Connector, ví dụ `elasticsearch-sink.json`:
+        ```json
+        {
+          "name": "sink-connector-lpb-position-data-prod-1",
+          "config": {
+            "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+            "behavior.on.null.values": "DELETE",
+            "connection.password": "******",
+            "tasks.max": "1",
+            "topics": "LPB.PositionData.Sink",
+            "drop.invalid.message": "true",
+            "connection.username": "elastic",
+            "log.sensitive.data": "true",
+            "schema.ignore": "true",
+            "behavior.on.malformed.documents": "WARN",
+            "name": "sink-connector-lpb-position-data-prod-1",
+            "write.method": "upsert",
+            "errors.tolerance": "all",
+            "connection.url": "http://elasticsearch:9200",
+            "key.converter": "org.apache.kafka.connect.storage.StringConverter"
+          }
+        }
+        ```
+
+      - Gửi yêu cầu POST để tạo connector:
+        ```bash
+         curl -X POST -H "Content-Type: application/json" --data @elasticsearch-sink.json http://localhost:8083/connectors
+        ```
+
+   - [xem thêm cách cài đặt](https://docs.confluent.io/kafka-connectors/elasticsearch/current/overview.html)
+
+## Cài đặt Elasticseach và Kibana
+
+*Các bước cài đặt Elasticsearch và Kibana trên ubuntu*
+
+1. Cài đặt Java:
+   - Elasticsearch yêu cầu Java. Bạn có thể cài đặt OpenJDK bằng lệnh sau:
+        ```bash
+        sudo apt update
+        sudo apt install openjdk-11-jdk -y
+        ```
+
+2. Thêm elasticsearch repository vào danh sách nguồn APT:
+   - Tải và cài đặt khóa GPG của Elasticsearch:
+       ```bash
+       wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+       ```
+   - Thêm kho lưu trữ Elasticsearch vào danh sách nguồn của APT:
+       ```bash
+       sudo sh -c 'echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list'
+       ```
+
+3. Cài đặt
+   - Cập nhật danh sách gói và cài đặt Elasticsearch:
+       ```bash
+       sudo apt update
+       sudo apt install elasticsearch -y
+       ```
+   - Cập nhật danh sách gói và cài đặt Kibana:
+       ```bash
+       sudo apt update
+       sudo apt install kibana -y
+       ```
+
+4. Cấu hình
+   - Cấu hình Elasticsearch:
+     - Mở tệp cấu hình **`elasticsearch.yml`** để chỉnh sửa:
+       ```bash
+       sudo nano /etc/elasticsearch/elasticsearch.yml
+       ```
+   - Cấu hình kibana:
+     - Mở tệp cấu hình **kibana.yml** để chỉnh sửa:
+        ```bash
+        sudo nano /etc/kibana/kibana.yml
+        ```
+   - Cấu hình kibana kết nối đến elasticsearch:
+       ```bash
+       server.port: 5601
+       server.host: "0.0.0.0"  # hoặc "localhost" nếu bạn chỉ muốn truy cập từ máy cục bộ
+       elasticsearch.hosts: ["http://localhost:9200"]  # Địa chỉ của Elasticsearch
+       ```
+
+5. Khời động và kích hoạt
+   - Run kibana vs elasticsearch:
+       ```bash
+       sudo systemctl start elasticsearch
+       sudo systemctl start kibana
+       ```
+   - Kích hoạt dịch vụ kibana vs elasticsearch để khởi động cùng hệ thống:
+       ```bash
+       sudo systemctl enable kibana
+       sudo systemctl enable elasticsearch
+       ```
+
+6. Kiểm tra hoạt động
+   - Kiểm tra trạng thái dịch vụ Elasticsearch
+       ```bash
+       sudo systemctl status elasticsearch
+    
+       # Kiem tra elasticsearch chay tren cong 9200
+       curl -X GET "localhost:9200/"
+       ```
+   - Kibana:
+       - Mở trình duyệt web và truy cập địa chỉ: **`http://localhost:5601`**
+
+## Triển khai hệ thống Backend microservice
+
+### Deploy Consul
+
+Deploy consul lên k8s sử dụng helm bằng command như sau:
+
+```bash
+helm upgrade --install consul ./k8s/charts/consul/
+```
+
+### Deploy rule engine service
+
+1. Build image
+
+    truy cập vào thư mục chứa source code của `rule-engine-service`, thực hiện lệnh build như sau:
+    ```bash
+    ./mvnw.cmd clean package -Pprod,api-docs -DskipTests jib:dockerBuild
+    ```
+    *Yêu cầu trên máy build phải đang chạy `docker`*
+
+2. Upload image lên remote registry
+
+    <n/a>
+
+3. Deploy Rule-engine service lên k8s
+    - Sử dụng Helm để triển khai service chạy trên k8s.
+    - Thay đổi địa chỉ image lưu ở remote registry đã upload ở bước trước đó.
+    - Thực hiện deploy service lên k8s bằng câu lệnh sau:
+    ```bash
+    helm upgrade --install -f ./k8s/values/rule-engine/values-dev.yaml rule-engine-service ./k8s/charts/lpb-svc --namespace=lpb --set image.repository=remoteRegistry/ruleengineservice,image.tag=1.0.1
+    ```
+
+### Deploy Fe
+```bash
+helm upgrade --install bank-vehicle-dashboard k8s/charts/fe-bank-dashboard/ --namespace=lpb --set image.repository=buiquang26/fe-bank-vehicle,image.tag=1.0.3
+```
+
+### Deploy Admin-service
+```bash
+helm upgrade --install -f ./k8s/values/admin-service/values-dev.yaml admin-service ./k8s/charts/lpb-svc --namespace=lpb --set image.repository=buiquang26/adminservice,image.tag=1.0.1
+```
+
+### Deploy Busines-service
+```bash
+helm upgrade --install -f ./k8s/values/business-service/values-dev.yaml business-service \
+./k8s/charts/lpb-svc --namespace=lpb \
+--set image.repository=buiquang26/businessservice,image.tag=1.0.1
+```
