@@ -1,0 +1,50 @@
+{
+	"connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+	"behavior.on.null.values": "DELETE",
+	"connection.password": "******",
+	"tasks.max": "3",
+	"topics": "be-audit-exception",
+	"drop.invalid.message": "true",
+	"connection.username": "elastic",
+	"log.sensitive.data": "true",
+	"schema.ignore": "true",
+	"behavior.on.malformed.documents": "WARN",
+	"name": "sink-connector-be-audit-exception-1",
+	"connection.url": "http://elasticsearch:9200",
+	"key.converter": "org.apache.kafka.connect.storage.StringConverter"
+}
+
+
+
+{
+	"connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+	"behavior.on.null.values": "DELETE",
+	"connection.password": "******",
+	"tasks.max": "3",
+	"topics": "be-audit-activity",
+	"drop.invalid.message": "true",
+	"connection.username": "elastic",
+	"log.sensitive.data": "true",
+	"schema.ignore": "true",
+	"behavior.on.malformed.documents": "WARN",
+	"name": "sink-connector-be-audit-activity-1",
+	"connection.url": "http://elasticsearch:9200",
+	"key.converter": "org.apache.kafka.connect.storage.StringConverter"
+}
+
+
+{
+	"connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+	"behavior.on.null.values": "DELETE",
+	"connection.password": "******",
+	"tasks.max": "3",
+	"topics": "be-audit-api",
+	"drop.invalid.message": "true",
+	"connection.username": "elastic",
+	"log.sensitive.data": "true",
+	"schema.ignore": "true",
+	"behavior.on.malformed.documents": "WARN",
+	"name": "sink-connector-be-audit-api-1",
+	"connection.url": "http://elasticsearch:9200",
+	"key.converter": "org.apache.kafka.connect.storage.StringConverter"
+}
