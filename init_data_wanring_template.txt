@@ -1,0 +1,16 @@
+INSERT INTO businessService.warning_template
+(id, title, body, lang_key, warning_type_code, created_by, created_date, last_modified_by, last_modified_date)
+values
+(1, 'Dừng, mở/đóng cửa két không đúng vị trí', 'Xe ${vehiclePlate} dừng, mở/đóng cửa không đúng vị trí lúc ${time}', 'vi', 'STOP_OPEN_DOOR_WRONG_POSITION', 'system', '2024-06-01', 'system', '2024-06-01'),
+(2, 'Thiếu/thừa thẻ RFID', 'Xe ${vehiclePlate} thiếu/thừa thẻ RFID', 'vi', 'MISSING_REDUNDANT_RFID_CARDS', 'system', '2024-06-01', 'system', '2024-06-01'),
+(3, 'Đi sai cung đường', 'Xe ${vehiclePlate} đi sai cung đường lúc ${time}', 'vi', 'WRONG_ROUTE', 'system', '2024-06-01', 'system', '2024-06-01'),
+(4, 'Mở khoang két lâu', 'Xe ${vehiclePlate} mở khoang két lâu ${address}','vi', 'OPEN_DOOR_TOO_LONG', 'system', '2024-06-01', 'system', '2024-06-01'),
+(5, 'Mất tín hiệu (GSM)', 'Xe ${vehiclePlate} mất tín hiệu từ ${time} được ${countMinute} phút','vi', 'LOST_SIGNAL_GSM', 'system', '2024-06-01', 'system', '2024-06-01'),
+(6, 'Mất GPS', 'Xe ${vehiclePlate} mất tín hiệu GPS lúc ${time}','vi', 'LOST_GPS', 'system', '2024-06-01', 'system', '2024-06-01'),
+(7, 'Khẩn cấp', 'Xe ${vehiclePlate} bấm nút cảnh báo lúc ${time}','vi', 'SOS', 'system', '2024-06-01', 'system', '2024-06-01'),
+(8, 'Mở két lớn hơn 1 lần trong điểm', 'Xe ${vehiclePlate} mở két lớn hơn 1 lần trong điểm lúc ${time}','vi', 'OPENED_MORE_THAN_ONCE_IN_POINT', 'system', '2024-06-01', 'system', '2024-06-01'),
+(9, 'Xe đến điểm trong lộ trình nhưng không mở két', 'Xe ${vehiclePlate} đến điểm trong lộ trình lúc ${time} nhưng không mở két','vi', 'IN_POINT_DONT_OPEN_DOOR', 'system', '2024-06-01', 'system', '2024-06-01'),
+(10, 'Đến điểm muộn', 'Xe ${vehiclePlate} Đến điểm muộn','vi', 'ARRIVE_LATE', 'system', '2024-06-01', 'system', '2024-06-01'),
+(11, 'Khởi hành muộn', 'Xe ${vehiclePlate} Khởi hành muộn','vi', 'LATE_DEPARTURE', 'system', '2024-06-01', 'system', '2024-06-01'),
+(12, 'Xe đi qua điểm giao dịch trong chuyến nhưng không dừng', 'Xe ${vehiclePlate} đi qua điểm giao dịch nhưng không dừng lúc ${time}','vi', 'PASS_THROUGH_POINT_DONT_STOP', 'system', '2024-06-01', 'system', '2024-06-01'),
+(13, 'Xe trong điểm, tắt máy và mở két', 'Xe ${vehiclePlate} trong điểm, tắt máy và mở két lúc ${time}','vi', 'PASS_THROUGH_POINT_DONT_STOP', 'system', '2024-06-01', 'system', '2024-06-01');
